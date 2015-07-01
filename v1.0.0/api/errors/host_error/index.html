@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="A pure Ruby client for Apache Cassandra">
+    <meta name="author" content="DataStax">
+
+    <title>Ruby Driver for Apache Cassandra - HostError</title>
+
+    <link rel="icon" href="../../../../favicon.ico">
+    <link rel="apple-touch-icon" href="../../../../favicon.png">
+    <link href="../../../../css/style.css" rel="stylesheet">
+    <link href="../../../../css/pygments.css" rel="stylesheet">
+    <link href="../../../../css/hotkeys.css" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body ng-app="docs" data-spy="scroll" data-target=".side-nav">
+    <header class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../../../">Ruby Driver for Apache Cassandra</a>
+        </div>
+        <div class="collapse navbar-collapse" ng-controller="search">
+          <ul class="nav navbar-nav">
+            
+            
+            
+            <li>
+              <a href="../../../features/">Features</a>
+            </li>
+            
+            
+            <li class="active">
+              <a href="../../">API docs</a>
+            </li>
+            
+          </ul>
+          <form class="navbar-form form-search navbar-right dropdown visible-lg-block" ng-class="{open: hasResults}" role="search" ng-submit="submit()">
+            <div class="form-group has-feedback">
+              <input type="search" class="form-control input-sm mousetrap" placeholder="Search..." ng-model="q" ng-change="search('v1.0.0')" ng-disabled="!searchReady" disabled data-hotkey="{down: moveDown, up: moveUp, esc: reset}" data-search>
+            </div>
+            <ul class="dropdown-menu" role="menu">
+              <li ng-repeat="result in results" ng-class="{'bg-warning': $index == current}"><a ng-href="{{basePath}}{{result.path}}"><span ng-bind-html="summary(result)"></span></a></li>
+            </ul>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <div class="container" id="content">
+      <div class="row">
+        <div class="col-md-9 content">
+          <nav class="crumbs">
+            <ol class="breadcrumb">
+              
+              <li>
+                <div class="dropdown">
+                  <button id="current-version" class="btn btn-default btn-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    v1.0.0
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="current-version">
+                  
+                    <li><a href="../../../../api/errors/host_error/">v3.0.0.rc.1</a></li>
+                  
+                    <li><a href="../../../../v3.0.0.beta.1/api/errors/host_error/">v3.0.0.beta.1</a></li>
+                  
+                    <li><a href="../../../../v2.1.5/api/errors/host_error/">v2.1.5</a></li>
+                  
+                    <li><a href="../../../../v2.0.1/api/errors/host_error/">v2.0.1</a></li>
+                  
+                    <li><a href="../../../../v1.2.0/api/errors/host_error/">v1.2.0</a></li>
+                  
+                    <li><a href="../../../../v1.1.1/api/errors/host_error/">v1.1.1</a></li>
+                  
+                    <li class="disabled"><a href="./">v1.0.0</a></li>
+                  
+                  </ul>
+                </div>
+              </li>
+              
+              
+              
+              
+              <li><a href="../../../">Home</a></li>
+              
+              
+              
+              
+              
+              <li><a href="../../">Cassandra</a></li>
+              
+              
+              
+              
+              
+              <li><a href="../">Errors</a></li>
+              
+              
+              
+              
+              
+              <li class="active">HostError</li>
+              
+              
+              
+            </ol>
+          </nav>
+          
+
+<div class="page-header">
+  <h1 id="module-cassandra-errors-host-error">
+<small>
+  module</small> Cassandra::Errors::HostError<a class="anchor" href="#module-cassandra-errors-host-error" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h1>
+</div>
+<p>Mixed into any host-specific errors. Requests resulting in these errors
+are attempted on other hosts. Once all hosts failed with this type of
+error, a <code><a href="../no_hosts_available/" title="Cassandra::Errors::NoHostsAvailable (class)">NoHostsAvailable</a></code> error is raised with
+details of failures.</p>
+
+<dl class="dl-horizontal notes">
+
+</dl>
+<dl class="tags">
+  
+
+
+  <dt class="tag-title">See Also:</dt>
+  <dd class="tag-content">
+    <ul class="see">
+      
+        <li><code><a href="../no_hosts_available/" title="Cassandra::Errors::NoHostsAvailable (class)">NoHostsAvailable</a></code></li>
+      
+    </ul>
+  </dd>
+
+
+</dl>
+
+
+
+
+<h2 id="mixed-into">Mixed into<a class="anchor" href="#mixed-into" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<div class="included">
+  <ul class="list-inline">
+    
+    <li><code><a href="../decoding_error/" title="Cassandra::Errors::DecodingError (class)">DecodingError</a></code></li>
+    
+    <li><code><a href="../encoding_error/" title="Cassandra::Errors::EncodingError (class)">EncodingError</a></code></li>
+    
+    <li><code><a href="../ioerror/" title="Cassandra::Errors::IOError (class)">IOError</a></code></li>
+    
+    <li><code><a href="../internal_error/" title="Cassandra::Errors::InternalError (class)">InternalError</a></code></li>
+    
+    <li><code><a href="../is_bootstrapping_error/" title="Cassandra::Errors::IsBootstrappingError (class)">IsBootstrappingError</a></code></li>
+    
+    <li><code><a href="../overloaded_error/" title="Cassandra::Errors::OverloadedError (class)">OverloadedError</a></code></li>
+    
+    <li><code><a href="../server_error/" title="Cassandra::Errors::ServerError (class)">ServerError</a></code></li>
+    
+    <li><code><a href="../timeout_error/" title="Cassandra::Errors::TimeoutError (class)">TimeoutError</a></code></li>
+    
+  </ul>
+</div>
+
+
+
+        </div>
+        <div class="col-md-3">
+          <div id="navigation" class="panel-group side-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="80" role="tablist" aria-multiselectable="true">
+            <div id="table-of-contents-panel" class="panel panel-default">
+              <div id="table-of-contents-heading" class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" href="#table-of-contents" aria-expanded="true" aria-controls="table-of-contents">
+                    Contents<i class="pull-right glyphicon glyphicon-chevron-up"></i>
+                  </a>
+                </h4>
+              </div>
+              <div id="table-of-contents" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="table-of-contents-heading">
+                <div class="panel-body">
+                  <ol class="nav nav-pills nav-stacked toc"><li><a href="#mixed-into">Mixed into
+</a></li></ol>
+                </div>
+              </div>
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <footer class="container text-muted">
+      <ul class="list-inline">
+      
+        
+        <li>
+          <a href="https://github.com/datastax/ruby-driver/">Code</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="http://datastax.github.io/ruby-driver/">Docs</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://datastax-oss.atlassian.net/browse/RUBY/">Issues</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://groups.google.com/a/lists.datastax.com/forum/#!forum/ruby-driver-user">Mailing List</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="irc://irc.freenode.net/datastax-drivers">IRC Channel</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://github.com/datastax/ruby-driver/releases">Releases</a>
+        </li>
+      
+      </ul>
+    </footer>
+    
+
+    <script src="../../../../js/jquery.js"></script>
+    <script src="../../../../js/bootstrap.js"></script>
+    <script src="../../../../js/angular.js"></script>
+    <script src="../../../../js/mousetrap.js"></script>
+    <script src="../../../../js/hotkeys.js"></script>
+    <script src="../../../../js/ZeroClipboard.js"></script>
+    <script src="../../../../js/lunr.js"></script>
+    <script src="../../../../js/app.js"></script>
+  </body>
+</html>

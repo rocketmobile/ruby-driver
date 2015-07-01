@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="A pure Ruby client for Apache Cassandra">
+    <meta name="author" content="DataStax">
+
+    <title>Ruby Driver for Apache Cassandra - Schema change detection</title>
+
+    <link rel="icon" href="../../../../favicon.ico">
+    <link rel="apple-touch-icon" href="../../../../favicon.png">
+    <link href="../../../../css/style.css" rel="stylesheet">
+    <link href="../../../../css/pygments.css" rel="stylesheet">
+    <link href="../../../../css/hotkeys.css" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body ng-app="docs" data-spy="scroll" data-target=".side-nav">
+    <header class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../../../">Ruby Driver for Apache Cassandra</a>
+        </div>
+        <div class="collapse navbar-collapse" ng-controller="search">
+          <ul class="nav navbar-nav">
+            
+            
+            
+            <li class="active">
+              <a href="../../">Features</a>
+            </li>
+            
+            
+            <li>
+              <a href="../../../api/">API docs</a>
+            </li>
+            
+          </ul>
+          <form class="navbar-form form-search navbar-right dropdown visible-lg-block" ng-class="{open: hasResults}" role="search" ng-submit="submit()">
+            <div class="form-group has-feedback">
+              <input type="search" class="form-control input-sm mousetrap" placeholder="Search..." ng-model="q" ng-change="search('v1.2.0')" ng-disabled="!searchReady" disabled data-hotkey="{down: moveDown, up: moveUp, esc: reset}" data-search>
+            </div>
+            <ul class="dropdown-menu" role="menu">
+              <li ng-repeat="result in results" ng-class="{'bg-warning': $index == current}"><a ng-href="{{basePath}}{{result.path}}"><span ng-bind-html="summary(result)"></span></a></li>
+            </ul>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <div class="container" id="content">
+      <div class="row">
+        <div class="col-md-9 content">
+          <nav class="crumbs">
+            <ol class="breadcrumb">
+              
+              <li>
+                <div class="dropdown">
+                  <button id="current-version" class="btn btn-default btn-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    v1.2.0
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="current-version">
+                  
+                    <li><a href="../../../../features/state_listeners/schema_changes/">v3.0.0.rc.1</a></li>
+                  
+                    <li><a href="../../../../v3.0.0.beta.1/features/state_listeners/schema_changes/">v3.0.0.beta.1</a></li>
+                  
+                    <li><a href="../../../../v2.1.5/features/state_listeners/schema_changes/">v2.1.5</a></li>
+                  
+                    <li><a href="../../../../v2.0.1/features/state_listeners/schema_changes/">v2.0.1</a></li>
+                  
+                    <li class="disabled"><a href="./">v1.2.0</a></li>
+                  
+                    <li><a href="../../../../v1.1.1/features/state_listeners/schema_changes/">v1.1.1</a></li>
+                  
+                    <li><a href="../../../../v1.0.0/features/state_listeners/schema_changes/">v1.0.0</a></li>
+                  
+                  </ul>
+                </div>
+              </li>
+              
+              
+              
+              
+              <li><a href="../../../">Home</a></li>
+              
+              
+              
+              
+              
+              <li><a href="../../">Usage</a></li>
+              
+              
+              
+              
+              
+              <li><a href="../">State Listeners</a></li>
+              
+              
+              
+              
+              
+              <li class="active">Schema change detection</li>
+              
+              
+              
+            </ol>
+          </nav>
+          
+<div class="feature-section">
+<h1 id="schema-change-detection">Schema change detection<a class="anchor" href="#schema-change-detection" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h1>
+<p>A state listener registered with Cluster object will be notified of schema changes.</p>
+
+<p>There are three types of changes – <code>keyspace_created</code>, <code>keyspace_changed</code> and
+<code>keyspace_dropped</code>. All will be communicated to a state listener using its
+accordingly named methods with a <a href="../../../api/keyspace/">Keyspace</a> instance as an
+argument.</p>
+<h2 id="background">Background<a class="anchor" href="#background" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<dl class="steps">
+<dt>Given </dt>
+<dd>a running cassandra cluster</dd>
+<dt>And </dt>
+<dd>a file named &#8220;printing_listener.rb&#8221; with:<pre class="highlight"><code><span class="k">class</span> <span class="nc">PrintingListener</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">io</span><span class="p">)</span>
+    <span class="vi">@out</span> <span class="o">=</span> <span class="n">io</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">keyspace_created</span><span class="p">(</span><span class="n">keyspace</span><span class="p">)</span>
+    <span class="vi">@out</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"Keyspace </span><span class="si">#{</span><span class="n">keyspace</span><span class="p">.</span><span class="nf">name</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2"> created"</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">keyspace_changed</span><span class="p">(</span><span class="n">keyspace</span><span class="p">)</span>
+    <span class="vi">@out</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"Keyspace </span><span class="si">#{</span><span class="n">keyspace</span><span class="p">.</span><span class="nf">name</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2"> changed"</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">keyspace_dropped</span><span class="p">(</span><span class="n">keyspace</span><span class="p">)</span>
+    <span class="vi">@out</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"Keyspace </span><span class="si">#{</span><span class="n">keyspace</span><span class="p">.</span><span class="nf">name</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2"> dropped"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+</dd>
+</dl>
+<h2 id="listening-for-keyspace-creation">Listening for keyspace creation<a class="anchor" href="#listening-for-keyspace-creation" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<dl class="steps">
+<dt>Given </dt>
+<dd>an empty schema</dd>
+<dt>And </dt>
+<dd>the following example:<pre class="highlight"><code><span class="nb">require</span> <span class="s1">'printing_listener'</span>
+<span class="nb">require</span> <span class="s1">'cassandra'</span>
+
+<span class="n">listener</span> <span class="o">=</span> <span class="no">PrintingListener</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vg">$stderr</span><span class="p">)</span>
+<span class="n">cluster</span>  <span class="o">=</span> <span class="no">Cassandra</span><span class="p">.</span><span class="nf">cluster</span>
+
+<span class="n">cluster</span><span class="p">.</span><span class="nf">register</span><span class="p">(</span><span class="n">listener</span><span class="p">)</span>
+
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== START ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+<span class="vg">$stdin</span><span class="p">.</span><span class="nf">gets</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== STOP ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+</code></pre>
+</dd>
+<dt>When </dt>
+<dd>it is running interactively</dd>
+<dt>And </dt>
+<dd>I wait for its output to contain &#8220;START&#8221;</dd>
+<dt>And </dt>
+<dd>I execute the following cql:<pre><code>CREATE KEYSPACE new_keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3}
+</code></pre>
+</dd>
+<dt>And </dt>
+<dd>I close the stdin stream</dd>
+<dt>Then </dt>
+<dd>its output should contain:<pre><code>Keyspace "new_keyspace" created
+</code></pre>
+</dd>
+</dl>
+<h2 id="listening-for-keyspace-drop">Listening for keyspace drop<a class="anchor" href="#listening-for-keyspace-drop" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<dl class="steps">
+<dt>Given </dt>
+<dd>the following schema:<pre class="highlight"><code><span class="k">CREATE</span> <span class="k">KEYSPACE</span> <span class="n">new_keyspace</span> <span class="k">WITH</span> <span class="n">replication</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'class'</span><span class="p">:</span> <span class="s1">'SimpleStrategy'</span><span class="p">,</span> <span class="s1">'replication_factor'</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+</code></pre>
+</dd>
+<dt>And </dt>
+<dd>the following example:<pre class="highlight"><code><span class="nb">require</span> <span class="s1">'printing_listener'</span>
+<span class="nb">require</span> <span class="s1">'cassandra'</span>
+
+<span class="n">listener</span> <span class="o">=</span> <span class="no">PrintingListener</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vg">$stderr</span><span class="p">)</span>
+<span class="n">cluster</span>  <span class="o">=</span> <span class="no">Cassandra</span><span class="p">.</span><span class="nf">cluster</span>
+
+<span class="n">cluster</span><span class="p">.</span><span class="nf">register</span><span class="p">(</span><span class="n">listener</span><span class="p">)</span>
+
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== START ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+<span class="vg">$stdin</span><span class="p">.</span><span class="nf">gets</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== STOP ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+</code></pre>
+</dd>
+<dt>When </dt>
+<dd>it is running interactively</dd>
+<dt>And </dt>
+<dd>I wait for its output to contain &#8220;START&#8221;</dd>
+<dt>And </dt>
+<dd>I execute the following cql:<pre class="highlight"><code><span class="k">DROP</span> <span class="k">KEYSPACE</span> <span class="n">new_keyspace</span>
+</code></pre>
+</dd>
+<dt>And </dt>
+<dd>I close the stdin stream</dd>
+<dt>Then </dt>
+<dd>its output should contain:<pre><code>Keyspace "new_keyspace" dropped
+</code></pre>
+</dd>
+</dl>
+<h2 id="listening-for-keyspace-changes">Listening for keyspace changes<a class="anchor" href="#listening-for-keyspace-changes" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<dl class="steps">
+<dt>Given </dt>
+<dd>the following schema:<pre class="highlight"><code><span class="k">CREATE</span> <span class="k">KEYSPACE</span> <span class="n">new_keyspace</span> <span class="k">WITH</span> <span class="n">replication</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'class'</span><span class="p">:</span> <span class="s1">'SimpleStrategy'</span><span class="p">,</span> <span class="s1">'replication_factor'</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+</code></pre>
+</dd>
+<dt>And </dt>
+<dd>the following example:<pre class="highlight"><code><span class="nb">require</span> <span class="s1">'printing_listener'</span>
+<span class="nb">require</span> <span class="s1">'cassandra'</span>
+
+<span class="n">listener</span> <span class="o">=</span> <span class="no">PrintingListener</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vg">$stderr</span><span class="p">)</span>
+<span class="n">cluster</span>  <span class="o">=</span> <span class="no">Cassandra</span><span class="p">.</span><span class="nf">cluster</span>
+
+<span class="n">cluster</span><span class="p">.</span><span class="nf">register</span><span class="p">(</span><span class="n">listener</span><span class="p">)</span>
+
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== START ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+<span class="vg">$stdin</span><span class="p">.</span><span class="nf">gets</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== STOP ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+</code></pre>
+</dd>
+<dt>When </dt>
+<dd>it is running interactively</dd>
+<dt>And </dt>
+<dd>I wait for its output to contain &#8220;START&#8221;</dd>
+<dt>And </dt>
+<dd>I execute the following cql:<pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">new_keyspace</span><span class="p">.</span><span class="n">new_table</span> <span class="p">(</span><span class="n">id</span> <span class="k">timeuuid</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">)</span>
+</code></pre>
+</dd>
+<dt>And </dt>
+<dd>I close the stdin stream</dd>
+<dt>Then </dt>
+<dd>its output should contain:<pre><code>Keyspace "new_keyspace" changed
+</code></pre>
+</dd>
+</dl>
+<h2 id="disabling-automatic-schema-synchronization">Disabling automatic schema synchronization<a class="anchor" href="#disabling-automatic-schema-synchronization" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<dl class="steps">
+<dt>Given </dt>
+<dd>an empty schema</dd>
+<dt>And </dt>
+<dd>the following example:<pre class="highlight"><code><span class="nb">require</span> <span class="s1">'printing_listener'</span>
+<span class="nb">require</span> <span class="s1">'cassandra'</span>
+
+<span class="n">listener</span> <span class="o">=</span> <span class="no">PrintingListener</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vg">$stderr</span><span class="p">)</span>
+<span class="n">cluster</span>  <span class="o">=</span> <span class="no">Cassandra</span><span class="p">.</span><span class="nf">cluster</span><span class="p">(</span><span class="ss">synchronize_schema: </span><span class="kp">false</span><span class="p">)</span>
+
+<span class="n">cluster</span><span class="p">.</span><span class="nf">register</span><span class="p">(</span><span class="n">listener</span><span class="p">)</span>
+
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== START ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+<span class="vg">$stdin</span><span class="p">.</span><span class="nf">gets</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span><span class="p">(</span><span class="s2">"=== STOP ==="</span><span class="p">)</span>
+<span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+</code></pre>
+</dd>
+<dt>When </dt>
+<dd>it is running interactively</dd>
+<dt>And </dt>
+<dd>I wait for its output to contain &#8220;START&#8221;</dd>
+<dt>And </dt>
+<dd>I execute the following cql:<pre class="highlight"><code><span class="k">CREATE</span> <span class="k">KEYSPACE</span> <span class="n">new_keyspace</span> <span class="k">WITH</span> <span class="n">replication</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'class'</span><span class="p">:</span> <span class="s1">'SimpleStrategy'</span><span class="p">,</span> <span class="s1">'replication_factor'</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+</code></pre>
+</dd>
+<dt>And </dt>
+<dd>I close the stdin stream</dd>
+<dt>Then </dt>
+<dd>its output should not contain:<pre><code>Keyspace "new_keyspace" created
+</code></pre>
+</dd>
+</dl>
+</div>
+
+        </div>
+        <div class="col-md-3">
+          <div id="navigation" class="panel-group side-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="80" role="tablist" aria-multiselectable="true">
+            <div id="table-of-contents-panel" class="panel panel-default">
+              <div id="table-of-contents-heading" class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" href="#table-of-contents" aria-expanded="true" aria-controls="table-of-contents">
+                    Contents<i class="pull-right glyphicon glyphicon-chevron-up"></i>
+                  </a>
+                </h4>
+              </div>
+              <div id="table-of-contents" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="table-of-contents-heading">
+                <div class="panel-body">
+                  <ol class="nav nav-pills nav-stacked toc">
+<li><a href="#background">Background
+</a></li>
+<li><a href="#listening-for-keyspace-creation">Listening for keyspace creation
+</a></li>
+<li><a href="#listening-for-keyspace-drop">Listening for keyspace drop
+</a></li>
+<li><a href="#listening-for-keyspace-changes">Listening for keyspace changes
+</a></li>
+<li><a href="#disabling-automatic-schema-synchronization">Disabling automatic schema synchronization
+</a></li>
+</ol>
+                </div>
+              </div>
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <footer class="container text-muted">
+      <ul class="list-inline">
+      
+        
+        <li>
+          <a href="https://github.com/datastax/ruby-driver/">Code</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="http://datastax.github.io/ruby-driver/">Docs</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://datastax-oss.atlassian.net/browse/RUBY/">Issues</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://groups.google.com/a/lists.datastax.com/forum/#!forum/ruby-driver-user">Mailing List</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="irc://irc.freenode.net/datastax-drivers">IRC Channel</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://github.com/datastax/ruby-driver/releases">Releases</a>
+        </li>
+      
+      </ul>
+    </footer>
+    
+
+    <script src="../../../../js/jquery.js"></script>
+    <script src="../../../../js/bootstrap.js"></script>
+    <script src="../../../../js/angular.js"></script>
+    <script src="../../../../js/mousetrap.js"></script>
+    <script src="../../../../js/hotkeys.js"></script>
+    <script src="../../../../js/ZeroClipboard.js"></script>
+    <script src="../../../../js/lunr.js"></script>
+    <script src="../../../../js/app.js"></script>
+  </body>
+</html>

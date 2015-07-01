@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="A pure Ruby client for Apache Cassandra">
+    <meta name="author" content="DataStax">
+
+    <title>Ruby Driver for Apache Cassandra - Provider</title>
+
+    <link rel="icon" href="../../../../favicon.ico">
+    <link rel="apple-touch-icon" href="../../../../favicon.png">
+    <link href="../../../../css/style.css" rel="stylesheet">
+    <link href="../../../../css/pygments.css" rel="stylesheet">
+    <link href="../../../../css/hotkeys.css" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body ng-app="docs" data-spy="scroll" data-target=".side-nav">
+    <header class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../../../">Ruby Driver for Apache Cassandra</a>
+        </div>
+        <div class="collapse navbar-collapse" ng-controller="search">
+          <ul class="nav navbar-nav">
+            
+            
+            
+            <li>
+              <a href="../../../features/">Features</a>
+            </li>
+            
+            
+            <li class="active">
+              <a href="../../">API docs</a>
+            </li>
+            
+          </ul>
+          <form class="navbar-form form-search navbar-right dropdown visible-lg-block" ng-class="{open: hasResults}" role="search" ng-submit="submit()">
+            <div class="form-group has-feedback">
+              <input type="search" class="form-control input-sm mousetrap" placeholder="Search..." ng-model="q" ng-change="search('v1.0.0')" ng-disabled="!searchReady" disabled data-hotkey="{down: moveDown, up: moveUp, esc: reset}" data-search>
+            </div>
+            <ul class="dropdown-menu" role="menu">
+              <li ng-repeat="result in results" ng-class="{'bg-warning': $index == current}"><a ng-href="{{basePath}}{{result.path}}"><span ng-bind-html="summary(result)"></span></a></li>
+            </ul>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <div class="container" id="content">
+      <div class="row">
+        <div class="col-md-9 content">
+          <nav class="crumbs">
+            <ol class="breadcrumb">
+              
+              <li>
+                <div class="dropdown">
+                  <button id="current-version" class="btn btn-default btn-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    v1.0.0
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="current-version">
+                  
+                    <li><a href="../../../../api/auth/provider/">v3.0.0.rc.1</a></li>
+                  
+                    <li><a href="../../../../v3.0.0.beta.1/api/auth/provider/">v3.0.0.beta.1</a></li>
+                  
+                    <li><a href="../../../../v2.1.5/api/auth/provider/">v2.1.5</a></li>
+                  
+                    <li><a href="../../../../v2.0.1/api/auth/provider/">v2.0.1</a></li>
+                  
+                    <li><a href="../../../../v1.2.0/api/auth/provider/">v1.2.0</a></li>
+                  
+                    <li><a href="../../../../v1.1.1/api/auth/provider/">v1.1.1</a></li>
+                  
+                    <li class="disabled"><a href="./">v1.0.0</a></li>
+                  
+                  </ul>
+                </div>
+              </li>
+              
+              
+              
+              
+              <li><a href="../../../">Home</a></li>
+              
+              
+              
+              
+              
+              <li><a href="../../">Cassandra</a></li>
+              
+              
+              
+              
+              
+              <li><a href="../">Auth</a></li>
+              
+              
+              
+              
+              
+              <li class="active">Provider</li>
+              
+              
+              
+            </ol>
+          </nav>
+          
+
+<div class="page-header">
+  <h1 id="abstract-class-cassandra-auth-provider">
+<small> <span class="label label-info">abstract</span>
+  class</small> Cassandra::Auth::Provider<a class="anchor" href="#abstract-class-cassandra-auth-provider" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h1>
+</div>
+<p>An auth provider is a factory for <code><a href="../authenticator/" title="Cassandra::Auth::Authenticator (class)">Authenticator</a></code> instances
+(or objects matching that interface). Its <code><a href="#create_authenticator-instance_method" title="Cassandra::Auth::Provider#create_authenticator (method)">#create_authenticator</a></code> will be
+called once for each connection that requires authentication.</p>
+
+<p>If the authentication requires keeping state, keep that in the
+authenticator instances, not in the auth provider.</p>
+
+<dl class="dl-horizontal notes">
+<dt><span class="label label-info">Abstract</span></dt>
+<dd>Auth providers given to <code><a href="../../#cluster-class_method" title="Cassandra.cluster (method)">Cassandra.cluster</a></code> don&#8217;t need to be
+subclasses of this class, but need to implement the same methods. This
+class exists only for documentation purposes.
+</dd>
+
+<dt><span class="label label-primary">Note</span></dt>
+<dd>Creating an authenticator must absolutely not block, or the whole
+connection process will block.
+</dd>
+
+
+</dl>
+<dl class="tags">
+  
+
+
+  <dt class="tag-title">See Also:</dt>
+  <dd class="tag-content">
+    <ul class="see">
+      
+        <li><code><a href="../providers/" title="Cassandra::Auth::Providers (module)">Providers</a></code></li>
+      
+    </ul>
+  </dd>
+
+
+</dl>
+
+<h2 id="inherits">Inherits<a class="anchor" href="#inherits" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<div class="superclass"><code>Object</code></div>
+
+
+
+
+<h2 id="direct-known-subclasses">Direct Known Subclasses<a class="anchor" href="#direct-known-subclasses" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<div class="subclasses">
+  <ul class="list-inline">
+    
+    <li><code><a href="../providers/password/" title="Cassandra::Auth::Providers::Password (class)">Auth::Providers::Password</a></code></li>
+    
+  </ul>
+</div>
+<h2 id="methods">Methods<a class="anchor" href="#methods" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h2>
+<div class="module-methods">
+  
+    <div class="panel panel-default member-definition">
+  <div class="panel-heading method-header">
+  
+    
+      <span class="path"><h3 id="create_authenticator-instance_method">
+<strong>create_authenticator</strong><a class="anchor" href="#create_authenticator-instance_method" aria-hidden="true"><span class="glyphicon glyphicon-link"></span></a>
+</h3></span><big>(</big><var>authentication_class</var>, <var>protocol_version</var><big>)</big> 
+    
+  
+  
+  
+  </div>
+  <div class="panel-body method-body">
+    <p>Create a new authenticator object. This method will be called once per
+connection that requires authentication. The auth provider can create
+different authenticators for different authentication classes, or return
+nil if it does not support the authentication class.</p>
+
+<dl class="dl-horizontal notes">
+
+<dt><span class="label label-primary">Note</span></dt>
+<dd>This method must absolutely not block.
+</dd>
+
+
+</dl>
+<dl class="tags">
+  
+<dt class="tag-title">
+  Parameters:
+</dt>
+<dd class="tag-content">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        
+        <th class="name">Name</th>
+        
+        
+        <th class="type">Type</th>
+        
+        <th class="details">Details</th>
+      </tr>
+    </thead>
+    <tbody>
+    
+      <tr>
+        
+        <td class="name"><var>authentication_class</var></td>
+        
+        
+        <td class="type"><code>String</code></td>
+        
+        <td class="details">
+          
+          
+          the authentication class used by
+the server.
+
+          
+        </td>
+      </tr>
+    
+    </tbody>
+  </table>
+</dd>
+
+<dt class="tag-title">
+  Returns:
+</dt>
+<dd class="tag-content">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        
+        
+        <th class="type">Type</th>
+        
+        <th class="details">Details</th>
+      </tr>
+    </thead>
+    <tbody>
+    
+      <tr>
+        
+        
+        <td class="type">(<code><a href="../authenticator/" title="Cassandra::Auth::Authenticator (class)">Auth::Authenticator</a></code> or <code>nil</code>)</td>
+        
+        <td class="details">
+          
+          
+          an object with an
+interface matching <code><a href="../authenticator/" title="Cassandra::Auth::Authenticator (class)">Authenticator</a></code> or <code>nil</code> if the
+authentication class is not supported.
+
+          
+        </td>
+      </tr>
+    
+    </tbody>
+  </table>
+</dd>
+
+
+</dl>
+  </div>
+</div>
+
+  
+</div>
+
+
+        </div>
+        <div class="col-md-3">
+          <div id="navigation" class="panel-group side-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="80" role="tablist" aria-multiselectable="true">
+            <div id="table-of-contents-panel" class="panel panel-default">
+              <div id="table-of-contents-heading" class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" href="#table-of-contents" aria-expanded="true" aria-controls="table-of-contents">
+                    Contents<i class="pull-right glyphicon glyphicon-chevron-up"></i>
+                  </a>
+                </h4>
+              </div>
+              <div id="table-of-contents" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="table-of-contents-heading">
+                <div class="panel-body">
+                  <ol class="nav nav-pills nav-stacked toc">
+<li><a href="#inherits">Inherits
+</a></li>
+<li><a href="#direct-known-subclasses">Direct Known Subclasses
+</a></li>
+<li>
+<a href="#methods">Methods
+</a><ol class="nav nav-pills nav-stacked"><li><a href="#create_authenticator-instance_method">
+create_authenticator
+</a></li></ol>
+</li>
+</ol>
+                </div>
+              </div>
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <footer class="container text-muted">
+      <ul class="list-inline">
+      
+        
+        <li>
+          <a href="https://github.com/datastax/ruby-driver/">Code</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="http://datastax.github.io/ruby-driver/">Docs</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://datastax-oss.atlassian.net/browse/RUBY/">Issues</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://groups.google.com/a/lists.datastax.com/forum/#!forum/ruby-driver-user">Mailing List</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="irc://irc.freenode.net/datastax-drivers">IRC Channel</a>
+        </li>
+      
+        <li>·</li>
+        <li>
+          <a href="https://github.com/datastax/ruby-driver/releases">Releases</a>
+        </li>
+      
+      </ul>
+    </footer>
+    
+
+    <script src="../../../../js/jquery.js"></script>
+    <script src="../../../../js/bootstrap.js"></script>
+    <script src="../../../../js/angular.js"></script>
+    <script src="../../../../js/mousetrap.js"></script>
+    <script src="../../../../js/hotkeys.js"></script>
+    <script src="../../../../js/ZeroClipboard.js"></script>
+    <script src="../../../../js/lunr.js"></script>
+    <script src="../../../../js/app.js"></script>
+  </body>
+</html>
