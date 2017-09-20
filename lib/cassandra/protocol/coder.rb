@@ -224,13 +224,15 @@ module Cassandra
 
       def read_values_v4(buffer, column_metadata, custom_type_handlers)
         ::Array.new(buffer.read_int) do |_i|
-          row = ::Hash.new
+          metadata = column_metadata.first
+          builder = Builders.row_registry.fetch(metadata[0], metadata[1])
+          row = builder.new
 
           column_metadata.each do |(_, _, column, type)|
             row[column] = read_value_v4(buffer, type, custom_type_handlers)
           end
 
-          row
+          row.build
         end
       end
 
