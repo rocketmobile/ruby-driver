@@ -1518,8 +1518,8 @@ module Cassandra
       end
 
       def peer_ip(data)
-        ip = data['rpc_address']
-        ip = data['peer'] if ip == '0.0.0.0'
+        ip = data[:rpc_address]
+        ip = data[:peer] if ip == '0.0.0.0'
 
         @address_resolver.resolve(ip)
       end

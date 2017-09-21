@@ -77,12 +77,12 @@ module Cassandra
         host = @hosts[ip]
 
         if host
-          if host.id              == data['host_id']         &&
-             host.release_version == data['release_version'] &&
-             host.rack            == data['rack']            &&
-             host.datacenter      == data['data_center']     &&
-             host.broadcast_address == data['broadcast_address'] &&
-             host.listen_address == data['listen_address']
+          if host.id              == data[:host_id]         &&
+             host.release_version == data[:release_version] &&
+             host.rack            == data[:rack]            &&
+             host.datacenter      == data[:data_center]     &&
+             host.broadcast_address == data[:broadcast_address] &&
+             host.listen_address == data[:listen_address]
 
             return self if host.up?
 
@@ -172,14 +172,14 @@ module Cassandra
       # @param data [Hash<String, String>] attributes of the host, typically a row from system.local or system.peers.
       def create_host(ip, data)
         Host.new(ip,
-                 data['host_id'],
-                 data['rack'],
-                 data['data_center'],
-                 data['release_version'],
-                 Array(data['tokens']).freeze,
+                 data[:host_id],
+                 data[:rack],
+                 data[:data_center],
+                 data[:release_version],
+                 Array(data[:tokens]).freeze,
                  :up,
-                 data['broadcast_address'],
-                 data['listen_address'])
+                 data[:broadcast_address],
+                 data[:listen_address])
       end
 
       # @param ip [Host] host that is found to be up.

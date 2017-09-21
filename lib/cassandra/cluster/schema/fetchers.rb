@@ -47,7 +47,7 @@ module Cassandra
                         lookup_triggers   = map_rows_by(rows_triggers, 'keyspace_name')
 
                         rows_keyspaces.map do |keyspace_data|
-                          name = keyspace_data['keyspace_name']
+                          name = keyspace_data[:keyspace_name]
 
                           create_keyspace(keyspace_data,
                                           lookup_tables[name],
@@ -360,16 +360,16 @@ module Cassandra
           end
 
           def create_replication(keyspace_data)
-            klass = keyspace_data['strategy_class']
+            klass = keyspace_data[:strategy_class]
             klass.slice!(REPLICATION_PACKAGE_PREFIX)
-            options = ::JSON.load(keyspace_data['strategy_options'])
+            options = ::JSON.load(keyspace_data[:strategy_options])
             Keyspace::Replication.new(klass, options)
           end
 
           def create_keyspace(keyspace_data, rows_tables, rows_columns,
                               rows_types, rows_functions, rows_aggregates,
                               rows_views, rows_indexes, rows_triggers)
-            keyspace_name = keyspace_data['keyspace_name']
+            keyspace_name = keyspace_data[:keyspace_name]
             replication   = create_replication(keyspace_data)
             types = rows_types.each_with_object({}) do |row, h|
               h[row['type_name']] = create_type(row)
@@ -398,7 +398,7 @@ module Cassandra
             end
 
             Keyspace.new(keyspace_name,
-                         keyspace_data['durable_writes'],
+                         keyspace_data[:durable_writes],
                          replication,
                          tables,
                          types,
@@ -408,11 +408,11 @@ module Cassandra
           end
 
           def create_table(table_data, rows_columns, rows_indexes, rows_triggers)
-            keyspace_name   = table_data['keyspace_name']
-            table_name      = table_data['columnfamily_name']
-            key_validator   = @type_parser.parse(table_data['key_validator'])
-            comparator      = @type_parser.parse(table_data['comparator'])
-            column_aliases  = ::JSON.load(table_data['column_aliases'])
+            keyspace_name   = table_data[:keyspace_name]
+            table_name      = table_data[:columnfamily_name]
+            key_validator   = @type_parser.parse(table_data[:key_validator])
+            comparator      = @type_parser.parse(table_data[:comparator])
+            column_aliases  = ::JSON.load(table_data[:column_aliases])
 
             if comparator.collections.nil?
               is_compact = true
@@ -451,7 +451,7 @@ module Cassandra
             table_options =
               create_table_options(table_data, compaction_strategy, is_compact)
 
-            key_aliases = ::JSON.load(table_data['key_aliases'])
+            key_aliases = ::JSON.load(table_data[:key_aliases])
 
             key_validator.results.each_with_index do |(type, order, is_frozen), i|
               key_alias = key_aliases.fetch(i) { i.zero? ? 'key' : "key#{i + 1}" }
@@ -469,12 +469,12 @@ module Cassandra
             end
 
             if has_value
-              value_alias   = table_data['value_alias']
+              value_alias   = table_data[:value_alias]
               value_alias ||= 'value'
 
               unless value_alias.empty?
                 type, order, is_frozen =
-                  @type_parser.parse(table_data['default_validator']).results.first
+                  @type_parser.parse(table_data[:default_validator]).results.first
                 other_columns <<
                   Column.new(value_alias, type, order, false, is_frozen)
               end
@@ -496,7 +496,7 @@ module Cassandra
                                          other_columns,
                                          table_options,
                                          clustering_order,
-                                         table_data['id'])
+                                         table_data[:id])
 
             # Create Index objects and add them to the table.
             index_rows.each do |column, row|
@@ -534,46 +534,46 @@ module Cassandra
           end
 
           def create_column(column_data)
-            name      = column_data['column_name']
-            is_static = (column_data['type'] == 'STATIC')
+            name      = column_data[:column_name]
+            is_static = (column_data[:type] == 'STATIC')
             type, order, is_frozen =
-              @type_parser.parse(column_data['validator']).results.first
+              @type_parser.parse(column_data[:validator]).results.first
             Column.new(name, type, order, is_static, is_frozen)
           end
 
           def create_compaction_strategy(table_data)
-            klass = table_data['compaction_strategy_class']
+            klass = table_data[:compaction_strategy_class]
             klass.slice!('org.apache.cassandra.db.compaction.')
-            options = ::JSON.load(table_data['compaction_strategy_options'])
+            options = ::JSON.load(table_data[:compaction_strategy_options])
             ColumnContainer::Compaction.new(klass, options)
           end
 
           def create_table_options(table_data, compaction_strategy, is_compact)
-            compression_parameters = ::JSON.load(table_data['compression_parameters'])
+            compression_parameters = ::JSON.load(table_data[:compression_parameters])
             if compression_parameters['sstable_compression']
               compression_parameters['sstable_compression']
                 .slice!(COMPRESSION_PACKAGE_PREFIX)
             end
             Cassandra::ColumnContainer::Options.new(
-              table_data['comment'],
-              table_data['read_repair_chance'],
-              table_data['local_read_repair_chance'],
-              table_data['gc_grace_seconds'],
-              table_data['caching'],
-              table_data['bloom_filter_fp_chance'] || 0.01,
-              table_data['populate_io_cache_on_flush'],
-              table_data['memtable_flush_period_in_ms'],
-              table_data['default_time_to_live'],
+              table_data[:comment],
+              table_data[:read_repair_chance],
+              table_data[:local_read_repair_chance],
+              table_data[:gc_grace_seconds],
+              table_data[:caching],
+              table_data[:bloom_filter_fp_chance] || 0.01,
+              table_data[:populate_io_cache_on_flush],
+              table_data[:memtable_flush_period_in_ms],
+              table_data[:default_time_to_live],
               nil,
               nil,
-              table_data['replicate_on_write'],
+              table_data[:replicate_on_write],
               nil,
               nil,
               compaction_strategy,
               compression_parameters,
               is_compact,
-              table_data['crc_check_chance'],
-              table_data['extensions'],
+              table_data[:crc_check_chance],
+              table_data[:extensions],
               nil
             )
           end
@@ -607,9 +607,9 @@ module Cassandra
           private
 
           def create_table(table_data, rows_columns, rows_indexes, rows_triggers)
-            keyspace_name   = table_data['keyspace_name']
-            table_name      = table_data['columnfamily_name']
-            comparator      = @type_parser.parse(table_data['comparator'])
+            keyspace_name   = table_data[:keyspace_name]
+            table_name      = table_data[:columnfamily_name]
+            comparator      = @type_parser.parse(table_data[:comparator])
             clustering_size = 0
 
             # Separate out partition-key, clustering columns, other columns.
@@ -655,7 +655,7 @@ module Cassandra
                                          other_columns,
                                          table_options,
                                          clustering_order,
-                                         table_data['id'])
+                                         table_data[:id])
 
             # Create Index objects and add them to the table.
             index_rows.each do |column, row|
@@ -719,31 +719,31 @@ module Cassandra
           end
 
           def create_table_options(table_data, compaction_strategy, is_compact)
-            compression_parameters = ::JSON.load(table_data['compression_parameters'])
+            compression_parameters = ::JSON.load(table_data[:compression_parameters])
             if compression_parameters['sstable_compression']
               compression_parameters['sstable_compression']
                 .slice!(COMPRESSION_PACKAGE_PREFIX)
             end
             Cassandra::ColumnContainer::Options.new(
-              table_data['comment'],
-              table_data['read_repair_chance'],
-              table_data['local_read_repair_chance'],
-              table_data['gc_grace_seconds'],
-              table_data['caching'],
-              table_data['bloom_filter_fp_chance'],
-              table_data['populate_io_cache_on_flush'],
-              table_data['memtable_flush_period_in_ms'],
-              table_data['default_time_to_live'],
-              table_data['speculative_retry'],
-              table_data['index_interval'],
-              table_data['replicate_on_write'],
+              table_data[:comment],
+              table_data[:read_repair_chance],
+              table_data[:local_read_repair_chance],
+              table_data[:gc_grace_seconds],
+              table_data[:caching],
+              table_data[:bloom_filter_fp_chance],
+              table_data[:populate_io_cache_on_flush],
+              table_data[:memtable_flush_period_in_ms],
+              table_data[:default_time_to_live],
+              table_data[:speculative_retry],
+              table_data[:index_interval],
+              table_data[:replicate_on_write],
               nil,
               nil,
               compaction_strategy,
               compression_parameters,
               is_compact,
-              table_data['crc_check_chance'],
-              table_data['extensions'],
+              table_data[:crc_check_chance],
+              table_data[:extensions],
               nil
             )
           end
@@ -761,12 +761,12 @@ module Cassandra
           private
 
           def create_type(type_data)
-            keyspace_name = type_data['keyspace_name']
-            type_name     = type_data['type_name']
+            keyspace_name = type_data[:keyspace_name]
+            type_name     = type_data[:type_name]
             type_fields   = ::Array.new
 
-            field_names = type_data['field_names']
-            field_types = type_data['field_types']
+            field_names = type_data[:field_names]
+            field_types = type_data[:field_types]
 
             field_names.zip(field_types) do |(field_name, fqcn)|
               field_type = @type_parser.parse(fqcn).results.first.first
@@ -794,31 +794,31 @@ module Cassandra
           end
 
           def create_table_options(table_data, compaction_strategy, is_compact)
-            compression_parameters = ::JSON.load(table_data['compression_parameters'])
+            compression_parameters = ::JSON.load(table_data[:compression_parameters])
             if compression_parameters['sstable_compression']
               compression_parameters['sstable_compression']
                 .slice!(COMPRESSION_PACKAGE_PREFIX)
             end
             Cassandra::ColumnContainer::Options.new(
-              table_data['comment'],
-              table_data['read_repair_chance'],
-              table_data['local_read_repair_chance'],
-              table_data['gc_grace_seconds'],
-              table_data['caching'],
-              table_data['bloom_filter_fp_chance'],
-              table_data['populate_io_cache_on_flush'],
-              table_data['memtable_flush_period_in_ms'],
-              table_data['default_time_to_live'],
-              table_data['speculative_retry'],
-              table_data['index_interval'],
-              table_data['replicate_on_write'],
-              table_data['min_index_interval'],
-              table_data['max_index_interval'],
+              table_data[:comment],
+              table_data[:read_repair_chance],
+              table_data[:local_read_repair_chance],
+              table_data[:gc_grace_seconds],
+              table_data[:caching],
+              table_data[:bloom_filter_fp_chance],
+              table_data[:populate_io_cache_on_flush],
+              table_data[:memtable_flush_period_in_ms],
+              table_data[:default_time_to_live],
+              table_data[:speculative_retry],
+              table_data[:index_interval],
+              table_data[:replicate_on_write],
+              table_data[:min_index_interval],
+              table_data[:max_index_interval],
               compaction_strategy,
               compression_parameters,
               is_compact,
-              table_data['crc_check_chance'],
-              table_data['extensions'],
+              table_data[:crc_check_chance],
+              table_data[:extensions],
               nil
             )
           end
@@ -857,18 +857,18 @@ module Cassandra
           private
 
           def create_function(function_data)
-            keyspace_name  = function_data['keyspace_name']
-            function_name  = function_data['function_name']
-            function_lang  = function_data['language']
+            keyspace_name  = function_data[:keyspace_name]
+            function_name  = function_data[:function_name]
+            function_lang  = function_data[:language]
             function_type  =
-              @type_parser.parse(function_data['return_type']).results.first.first
-            function_body  = function_data['body']
-            called_on_null = function_data['called_on_null_input']
+              @type_parser.parse(function_data[:return_type]).results.first.first
+            function_body  = function_data[:body]
+            called_on_null = function_data[:called_on_null_input]
 
             arguments = []
 
-            Array(function_data['argument_names'])
-              .zip(Array(function_data['argument_types'])) do |argument_name, fqcn|
+            Array(function_data[:argument_names])
+              .zip(Array(function_data[:argument_types])) do |argument_name, fqcn|
               argument_type = @type_parser.parse(fqcn).results.first.first
               arguments << Argument.new(argument_name, argument_type)
             end
@@ -883,28 +883,28 @@ module Cassandra
           end
 
           def create_aggregate(aggregate_data, functions)
-            keyspace_name  = aggregate_data['keyspace_name']
-            aggregate_name = aggregate_data['aggregate_name']
+            keyspace_name  = aggregate_data[:keyspace_name]
+            aggregate_name = aggregate_data[:aggregate_name]
             aggregate_type =
-              @type_parser.parse(aggregate_data['return_type']).results.first.first
-            argument_types = aggregate_data['argument_types'].map do |fqcn|
+              @type_parser.parse(aggregate_data[:return_type]).results.first.first
+            argument_types = aggregate_data[:argument_types].map do |fqcn|
               @type_parser.parse(fqcn).results.first.first
             end.freeze
             state_type     =
-              @type_parser.parse(aggregate_data['state_type']).results.first.first
+              @type_parser.parse(aggregate_data[:state_type]).results.first.first
             initial_state  = Util.encode_object(
               Protocol::Coder.read_value_v4(
-                Protocol::CqlByteBuffer.new.append_bytes(aggregate_data['initcond']),
+                Protocol::CqlByteBuffer.new.append_bytes(aggregate_data[:initcond]),
                 state_type, nil
               )
             )
 
             # The state-function takes arguments: first the stype, then the args of the aggregate.
-            state_function = functions.get(aggregate_data['state_func'],
+            state_function = functions.get(aggregate_data[:state_func],
                                            [state_type].concat(argument_types))
 
             # The final-function takes an stype argument.
-            final_function = functions.get(aggregate_data['final_func'],
+            final_function = functions.get(aggregate_data[:final_func],
                                            [state_type])
 
             Aggregate.new(keyspace_name,
@@ -1176,18 +1176,18 @@ module Cassandra
           end
 
           def create_function(function_data, types = nil)
-            keyspace_name  = function_data['keyspace_name']
-            function_name  = function_data['function_name']
-            function_lang  = function_data['language']
+            keyspace_name  = function_data[:keyspace_name]
+            function_name  = function_data[:function_name]
+            function_lang  = function_data[:language]
             types        ||= @schema.keyspace(keyspace_name).send(:raw_types)
-            function_type  = @type_parser.parse(function_data['return_type'], types).first
-            function_body  = function_data['body']
-            called_on_null = function_data['called_on_null_input']
+            function_type  = @type_parser.parse(function_data[:return_type], types).first
+            function_body  = function_data[:body]
+            called_on_null = function_data[:called_on_null_input]
 
             arguments = []
 
-            function_data['argument_names']
-              .zip(function_data['argument_types']) do |argument_name, argument_type|
+            function_data[:argument_names]
+              .zip(function_data[:argument_types]) do |argument_name, argument_type|
               arguments << Argument.new(argument_name,
                                         @type_parser.parse(argument_type, types).first)
             end
@@ -1202,24 +1202,24 @@ module Cassandra
           end
 
           def create_aggregate(aggregate_data, functions, types = nil)
-            keyspace_name  = aggregate_data['keyspace_name']
-            aggregate_name = aggregate_data['aggregate_name']
+            keyspace_name  = aggregate_data[:keyspace_name]
+            aggregate_name = aggregate_data[:aggregate_name]
             types        ||= @schema.keyspace(keyspace_name).send(:raw_types)
             aggregate_type =
-              @type_parser.parse(aggregate_data['return_type'], types).first
-            argument_types = aggregate_data['argument_types'].map do |argument_type|
+              @type_parser.parse(aggregate_data[:return_type], types).first
+            argument_types = aggregate_data[:argument_types].map do |argument_type|
               @type_parser.parse(argument_type, types).first
             end.freeze
-            state_type     = @type_parser.parse(aggregate_data['state_type'], types).first
-            initial_state  = aggregate_data['initcond'] || 'null'
+            state_type     = @type_parser.parse(aggregate_data[:state_type], types).first
+            initial_state  = aggregate_data[:initcond] || 'null'
 
             # The state-function takes arguments: first the stype, then the args of the
             # aggregate.
-            state_function = functions.get(aggregate_data['state_func'],
+            state_function = functions.get(aggregate_data[:state_func],
                                            [state_type].concat(argument_types))
 
             # The final-function takes an stype argument.
-            final_function = functions.get(aggregate_data['final_func'],
+            final_function = functions.get(aggregate_data[:final_func],
                                            [state_type])
 
             Aggregate.new(keyspace_name,
@@ -1240,13 +1240,13 @@ module Cassandra
 
               until rows_types.empty?
                 type_data     = rows_types.shift
-                type_name     = type_data['type_name']
-                type_keyspace = type_data['keyspace_name']
+                type_name     = type_data[:type_name]
+                type_keyspace = type_data[:keyspace_name]
                 type_fields   = ::Array.new
 
                 begin
-                  field_names = type_data['field_names']
-                  field_types = type_data['field_types']
+                  field_names = type_data[:field_names]
+                  field_types = type_data[:field_types]
                   field_names.each_with_index do |field_name, i|
                     field_type = @type_parser.parse(field_types[i], types).first
                     type_fields << [field_name, field_type]
@@ -1269,7 +1269,7 @@ module Cassandra
 
           def create_keyspace(keyspace_data, rows_tables, rows_columns, rows_types,
                               rows_functions, rows_aggregates, rows_views, rows_indexes, rows_triggers)
-            keyspace_name = keyspace_data['keyspace_name']
+            keyspace_name = keyspace_data[:keyspace_name]
             replication   = create_replication(keyspace_data)
 
             types = ::Hash.new
@@ -1307,7 +1307,7 @@ module Cassandra
             end
 
             Keyspace.new(keyspace_name,
-                         keyspace_data['durable_writes'],
+                         keyspace_data[:durable_writes],
                          replication,
                          tables,
                          types,
@@ -1317,66 +1317,66 @@ module Cassandra
           end
 
           def create_replication(keyspace_data)
-            options = keyspace_data['replication']
+            options = keyspace_data[:replication]
             klass   = options.delete('class')
             klass.slice!(REPLICATION_PACKAGE_PREFIX)
             Keyspace::Replication.new(klass, options)
           end
 
           def create_compaction_strategy(table_data)
-            options = table_data['compaction']
+            options = table_data[:compaction]
             klass   = options.delete('class')
             klass.slice!('org.apache.cassandra.db.compaction.')
             ColumnContainer::Compaction.new(klass, options)
           end
 
           def create_table_options(table_data, compaction_strategy, is_compact)
-            compression = table_data['compression']
+            compression = table_data[:compression]
             compression['class'].slice!(COMPRESSION_PACKAGE_PREFIX) if compression['class']
 
             Cassandra::ColumnContainer::Options.new(
-              table_data['comment'],
-              table_data['read_repair_chance'],
-              table_data['dclocal_read_repair_chance'],
-              table_data['gc_grace_seconds'],
-              table_data['caching'],
-              table_data['bloom_filter_fp_chance'],
+              table_data[:comment],
+              table_data[:read_repair_chance],
+              table_data[:dclocal_read_repair_chance],
+              table_data[:gc_grace_seconds],
+              table_data[:caching],
+              table_data[:bloom_filter_fp_chance],
               nil,
-              table_data['memtable_flush_period_in_ms'],
-              table_data['default_time_to_live'],
-              table_data['speculative_retry'],
+              table_data[:memtable_flush_period_in_ms],
+              table_data[:default_time_to_live],
+              table_data[:speculative_retry],
               nil,
               nil,
-              table_data['min_index_interval'],
-              table_data['max_index_interval'],
+              table_data[:min_index_interval],
+              table_data[:max_index_interval],
               compaction_strategy,
               compression,
               is_compact,
-              table_data['crc_check_chance'],
-              table_data['extensions'],
-              table_data['cdc']
+              table_data[:crc_check_chance],
+              table_data[:extensions],
+              table_data[:cdc]
             )
           end
 
           def create_column(column_data, types)
-            name      = column_data['column_name']
-            is_static = column_data['kind'].to_s.casecmp('STATIC').zero?
-            order     = column_data['clustering_order'] == 'desc' ? :desc : :asc
-            if column_data['type'][0] == "'"
+            name      = column_data[:column_name]
+            is_static = column_data[:kind].to_s.casecmp('STATIC').zero?
+            order     = column_data[:clustering_order] == 'desc' ? :desc : :asc
+            if column_data[:type][0] == "'"
               # This is a custom column type.
-              type = Types.custom(column_data['type'].slice(1, column_data['type'].length - 2))
+              type = Types.custom(column_data[:type].slice(1, column_data[:type].length - 2))
               is_frozen = false
             else
-              type, is_frozen = @type_parser.parse(column_data['type'], types)
+              type, is_frozen = @type_parser.parse(column_data[:type], types)
             end
 
             Column.new(name, type, order, is_static, is_frozen)
           end
 
           def create_table(table_data, rows_columns, rows_indexes, rows_triggers, types = nil)
-            keyspace_name   = table_data['keyspace_name']
-            table_name      = table_data['table_name']
-            table_flags     = table_data['flags']
+            keyspace_name   = table_data[:keyspace_name]
+            table_name      = table_data[:table_name]
+            table_flags     = table_data[:flags]
 
             is_dense    = table_flags.include?('dense')
             is_super    = table_flags.include?('super')
@@ -1424,7 +1424,7 @@ module Cassandra
 
             # Default the crc_check_chance to 1.0 (Java driver does this, so we
             # should, too).
-            table_data['crc_check_chance'] ||= 1.0
+            table_data[:crc_check_chance] ||= 1.0
             compaction_strategy = create_compaction_strategy(table_data)
             table_options =
               create_table_options(table_data, compaction_strategy, is_compact)
@@ -1436,7 +1436,7 @@ module Cassandra
                                          other_columns,
                                          table_options,
                                          clustering_order,
-                                         table_data['id'])
+                                         table_data[:id])
             rows_indexes.each do |row|
               create_index(table, row)
             end
@@ -1459,11 +1459,11 @@ module Cassandra
           end
 
           def create_materialized_view(view_data, rows_columns, types = nil)
-            keyspace_name   = view_data['keyspace_name']
-            view_name       = view_data['view_name']
-            base_table_name = view_data['base_table_name']
-            include_all_columns = view_data['include_all_columns']
-            where_clause = view_data['where_clause']
+            keyspace_name   = view_data[:keyspace_name]
+            view_name       = view_data[:view_name]
+            base_table_name = view_data[:base_table_name]
+            include_all_columns = view_data[:include_all_columns]
+            where_clause = view_data[:where_clause]
 
             # Separate out partition key, clustering columns, other columns
             partition_key      = []
@@ -1500,7 +1500,7 @@ module Cassandra
                                  include_all_columns,
                                  where_clause,
                                  base_table_name,
-                                 view_data['id'])
+                                 view_data[:id])
           end
         end
 

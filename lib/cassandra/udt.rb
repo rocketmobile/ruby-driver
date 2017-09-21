@@ -71,7 +71,7 @@ module Cassandra
         when ::Integer
           return nil if field < 0 || field >= @fields.size
           @values[@fields[field][0]]
-        when ::String
+        when ::Symbol
           @values[field]
         else
           raise ::ArgumentError, "unrecognized field #{field} in UDT: " \
@@ -98,7 +98,7 @@ module Cassandra
                   "#{Util.escape_name(@keyspace)}.#{Util.escape_name(@name)}"
           end
           @values[@fields[field][0]]
-        when ::String
+        when ::Symbol
           unless @name_to_type.key?(field)
             raise ::KeyError,
                   "field #{field} is not defined in UDT: " \
@@ -132,7 +132,7 @@ module Cassandra
           end
           Util.assert_type(@fields[field][1], value)
           @values[@fields[field][0]] = value
-        when ::String
+        when ::Symbol
           unless @name_to_type.key?(field)
             raise ::KeyError,
                   "field #{field} is not defined in UDT: " \
@@ -233,14 +233,14 @@ module Cassandra
                       "value pairs, #{pair.inspect} given")
           name, value = pair
 
-          [String(name), value]
+          [name.to_sym, value]
         end
       else
         Util.assert(values.size.even?,
                     'values of a user-defined type must be an Array of alternating ' \
                     "names and values pairs, #{values.inspect} given")
         @values = values.each_slice(2).map do |(name, value)|
-          [String(name), value]
+          [name.to_sym, value]
         end
       end
     end
@@ -312,7 +312,7 @@ module Cassandra
         return nil if field >= 0 && field < @values.size
 
         @values[field][1]
-      when ::String
+      when ::Symbol
         index = @values.index {|(n, _)| field == n}
 
         index && @values[index][1]
@@ -337,7 +337,7 @@ module Cassandra
         raise ::IndexError, "Field index #{field.inspect} is not present" if field >= 0 && field < @values.size
 
         @values[field][1]
-      when ::String
+      when ::Symbol
         index = @values.index {|(n, _)| field == n}
 
         raise ::KeyError, "Unsupported field #{field.inspect}" unless index
@@ -356,7 +356,7 @@ module Cassandra
       case field
       when ::Integer
         return false if field < 0 || field >= @values.size
-      when ::String
+      when ::Symbol
         return false unless @values.index {|(n, _)| field == n}
       else
         return false
@@ -383,7 +383,7 @@ module Cassandra
         raise ::IndexError, "Field index #{field.inspect} is not present" if field < 0 || field >= @values.size
 
         @values[field][1] = value
-      when ::String
+      when ::Symbol
         index = @values.index {|(n, _)| field == n}
 
         raise ::KeyError, "Unsupported field #{field.inspect}" unless index

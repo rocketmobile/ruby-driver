@@ -163,14 +163,14 @@ module Cassandra
             table_name    = buffer.read_string
 
             column_specs = ::Array.new(count) do |_i|
-              [keyspace_name, table_name, buffer.read_string, read_type_v4(buffer)]
+              [keyspace_name, table_name, buffer.read_string.to_sym, read_type_v4(buffer)]
             end
           else
             column_specs = ::Array.new(count) do |_i|
               [
                 buffer.read_string,
                 buffer.read_string,
-                buffer.read_string,
+                buffer.read_string.to_sym,
                 read_type_v4(buffer)
               ]
             end

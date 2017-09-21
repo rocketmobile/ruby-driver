@@ -686,14 +686,14 @@ Control connection failed and is unlikely to recover.
       end
 
       def peer_ip(data, host_address)
-        peer = data['peer']
+        peer = data[:peer]
 
-        return nil unless peer && data['host_id'] && data['data_center'] && data['rack'] && data['tokens']
+        return nil unless peer && data[:host_id] && data[:data_center] && data[:rack] && data[:tokens]
 
-        rpc_address = data['rpc_address']
+        rpc_address = data[:rpc_address]
 
         if rpc_address.nil?
-          @logger.info("The system.peers row for '#{data['peer']}' has no rpc_address. This is likely " \
+          @logger.info("The system.peers row for '#{data[:peer]}' has no rpc_address. This is likely " \
                            'a gossip or snitch issue. This host will be ignored.')
           return nil
         end

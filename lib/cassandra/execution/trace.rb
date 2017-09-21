@@ -154,12 +154,12 @@ module Cassandra
 
           raise ::RuntimeError, "unable to load trace #{@id}" if data.nil?
 
-          @coordinator = data['coordinator']
-          @duration    = data['duration']
-          @parameters  = data['parameters']
-          @request     = data['request']
-          @started_at  = data['started_at']
-          @client_ip   = data['client']
+          @coordinator = data[:coordinator]
+          @duration    = data[:duration]
+          @parameters  = data[:parameters]
+          @request     = data[:request]
+          @started_at  = data[:started_at]
+          @client_ip   = data[:client]
           @loaded      = true
         end
 
