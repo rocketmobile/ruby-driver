@@ -100,3 +100,7 @@ require 'cassandra/protocol/v1'
 require 'cassandra/protocol/v3'
 require 'cassandra/protocol/v4'
 require 'cassandra/protocol/coder'
+require 'cassandra/protocol/builders'
+require 'cassandra/protocol/builders/registry'
+require 'cassandra/protocol/builders/hash_builder'
+
